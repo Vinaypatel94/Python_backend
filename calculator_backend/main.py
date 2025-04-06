@@ -32,9 +32,14 @@ def calculate(operation: str, num1: float, num2: float, db: Session = Depends(ge
     else:
         raise HTTPException(status_code=400,detail="invalid operation")
 
-
-    calc = Calculation(operation=operation, num1=num1, num2=num2, result=result)
-    db.add(calc)
-    db.commit()
-    db.refresh(calc)
+    try:
+        calc = Calculation(operation=operation, num1=num1, num2=num2, result=result)
+        db.add(calc)
+        db.commit()
+        db.refresh(calc)
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException (status_code=500, details=f"Database Error: {str(e)}")
+        
     return {"id": calc.id, "operation": operation, "num1": num1, "num2": num2, "result": result}
